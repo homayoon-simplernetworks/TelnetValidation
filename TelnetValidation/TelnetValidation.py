@@ -6,6 +6,8 @@ import time
 import binascii
 import sys
 import yaml
+import yld
+
 
 from tkinter import *
 
@@ -15,21 +17,6 @@ class App(Frame):
         self.pack()
 
         
-class yld:
-        def __init__ (self):
-                data = {}
-                
-        def yaml_loader(filepath):
-                """Loads a yaml file"""
-                with open(filepath, "r") as file_descriptor:
-                        data = yaml.load(file_descriptor)
-                return data
-
-        def ymal_dump(filepath, data):
-                """Dump data to a yaml file"""
-                with open(filepath, "w") as file_desxriptor:
-                        yaml.dump(data, file_descriptor)
-
 # open telnet connection
 def telnetConnection():
     #telnet to ez-edge
@@ -103,6 +90,8 @@ def userValidation(user, password, testT):
         
         
             def loginTo():
+
+                #too many invalid user needs to recall the program, becuase already 'User    :' has been 
                 if not testT == testType[2]: tn.read_until(b"User    : ")
                 else:
                     tn.read_until(b"User    : ",2)
@@ -133,7 +122,22 @@ def userValidation(user, password, testT):
         w = input('press enter ...')
         exit()
 
+#send commends and log message
+def logger():
+    # this code just will use to 
+    commm = 'help'
+    tn.read_until(b'[CLI Telnet]$' , 5)
+    tn.write(commm.encode('ascii') + b'\r\n')
+    logg = tn.read_until(b'something',5)
+    print ('********************************')
+    print (logg)
+
+
+
+
 if __name__ == "__main__":
+    
+    # variables
     global HOST
     HOST = '192.168.3.115'
     global PORT 
@@ -143,11 +147,18 @@ if __name__ == "__main__":
     user="admin"
     password="ez-edge#1"
     command ="help"
-
     global testType 
     testType = ['bad user','bad pass','Too many invalid user', 'valid user' , 'just login']
 
-   
+    fp = "config.yaml"
+    yf = yld.yld
+
+    '''data=yf.yaml_loader(fp)
+    print (data)
+    dbInfo = data.get("dbInfo")
+    for item_name, item_value in dbInfo.items():
+        print (item_name, item_value)'''
+    
     #telnet to ez-edge
     telnetConnection()
 
@@ -160,13 +171,14 @@ if __name__ == "__main__":
 
 
 
-    tn.read_until(b"User    : ")
+    logger()
 
-    tn.write(b"admin\r\n")
-    tn.read_until(b"Password: ")
-    #print("all I read" , tn.read_eager().decode('ascii'))
-    tn.write(b"ez-edge#1\r\n")
-    print("4")
+    lo = {'help': logg.decode('ascii')}
+    yf.ymal_dump(fp,lo)
+
     time.sleep(4)
     tn.write(b"exit\r\n")
     print("all I read" , tn.read_all().decode('ascii'))
+    w= input('enter ...')
+
+
