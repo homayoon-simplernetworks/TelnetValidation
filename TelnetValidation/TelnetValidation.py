@@ -1,5 +1,4 @@
 ﻿# this program will validate telnet connection to ez-edge ADF
-
 import getpass
 import telnetlib
 import time
@@ -123,8 +122,24 @@ def userValidation(user, password, testT):
         exit()
 
 #send commends and log message
+# this code just will use to log system message for each command
 def logger():
-    # this code just will use to 
+    #open file that has list of commands
+    with open("c:\\work\\commands\\help2.txt") as fi:
+        Commands = fi.readlines()
+    for command in Commands: 
+        #because I don't know is system is waiting for command or there is something coming I put this      
+        tn.read_until(b'[CLI Telnet]$' , 3)
+        tn.write(commm.encode('ascii') + b'\r\n')
+        # Cause a 3-second pause between sends by waiting for something "unexpected"
+		# with a timeout value.
+        logg = tn.read_until(b'something',3)
+        lo[comm] = logg.decode('ascii')
+        
+    #log information into a yaml file    
+    yf.ymal_dump(ffp,lo)
+
+        
     commm = 'help'
     tn.read_until(b'[CLI Telnet]$' , 5)
     tn.write(commm.encode('ascii') + b'\r\n')
@@ -172,6 +187,11 @@ if __name__ == "__main__":
 
 
     logger()
+
+    
+
+    
+        
 
     lo = {'help': logg.decode('ascii')}
     yf.ymal_dump(fp,lo)
