@@ -1,10 +1,11 @@
-# this program will validate telnet connection to ez-edge ADF
+﻿# this program will validate telnet connection to ez-edge ADF
 
 import getpass
 import telnetlib
 import time
 import binascii
 import sys
+import yaml
 
 from tkinter import *
 
@@ -12,6 +13,22 @@ class App(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.pack()
+
+        
+class yld:
+        def __init__ (self):
+                data = {}
+                
+        def yaml_loader(filepath):
+                """Loads a yaml file"""
+                with open(filepath, "r") as file_descriptor:
+                        data = yaml.load(file_descriptor)
+                return data
+
+        def ymal_dump(filepath, data):
+                """Dump data to a yaml file"""
+                with open(filepath, "w") as file_desxriptor:
+                        yaml.dump(data, file_descriptor)
 
 # open telnet connection
 def telnetConnection():
@@ -27,18 +44,22 @@ def telnetConnection():
     
 def userValidation(user, password, testT):
     try:
+            
             global TooManyPassTry
             TooManyPassTry = 1
+            #to keep tracking of Too many invalid user 
+            if testT == testType[2]: TooManyPassTry += 1
+
+
+
             #prepare list of all possible state 
         
             # list of all possible state after initially send user and pass
-            InitialExpectedList = [b'Invalid user/password', b'[CLI Telnet]$'  ]
+            InitialExpectedList = [b'Invalid user/password', b'Welcome to'  ]
         
             #list of all possible state after invalid user
-            
-            InvalidUserList = [ b'User    :', b'Too many invalid', b'[CLI Telnet]$']
-            print (b'[CLI Telnet]$' , '[CLI Telnet]$')
-        
+            InvalidUserList = [ b'User    :', b'Too many invalid', b'Welcome to']
+                    
             def Invaliduser():
                 if testT == testType[0]:
                     print ('invalid user test has been passed')
@@ -46,10 +67,10 @@ def userValidation(user, password, testT):
                     print ('invalid pass test has been passed')
                 elif testT == testType[2]:
                     tnexInvalid = tn.expect(InvalidUserList, 15)
-                    print (tnexInvalid[1], tnexInvalid[0])
+                    
                     if tnexInvalid[0] == 0 :
-                        TooManyPassTry += 1 
-                        if TooManyPassTry<2 : 
+                        
+                        if TooManyPassTry<4 : 
                             userValidation(user, password, testT)
                         else:
                             print ('too many invalid user/ pass failed, still system ask for new user ')
@@ -70,7 +91,7 @@ def userValidation(user, password, testT):
                         exit()
 
             def Validuser():
-                print ('valid user')
+                print ('valid user test has been passed' )
         
             def timeoutR():
                 print('timeout')
@@ -82,16 +103,22 @@ def userValidation(user, password, testT):
         
         
             def loginTo():
-                tn.read_until(b"User    : ")
+                if not testT == testType[2]: tn.read_until(b"User    : ")
+                else:
+                    tn.read_until(b"User    : ",2)
                 tn.write( user.strip().encode('ascii') + b'\r\n')
                 print ('user: ', user , ' has been sent to system')
-                tn.read_until(b"Password: ")
+                
+                if not testT == testType[2]:tn.read_until(b"Password: ")
+                else:
+                    tn.read_until(b"Password: ",2)
+
                 tn.write(password.encode('ascii') + b'\r\n')
+                print ('Password: ', password , ' has been sent to system')
                 
             
 
             loginTo()
-            TooManyPassTry = TooManyPassTry +1 
             us = tn.expect(InitialExpectedList, 15)
         
             InitialOptions[us[0]]()
@@ -106,7 +133,7 @@ def userValidation(user, password, testT):
         w = input('press enter ...')
         exit()
 
-def main():
+if __name__ == "__main__":
     global HOST
     HOST = '192.168.3.115'
     global PORT 
@@ -143,5 +170,3 @@ def main():
     time.sleep(4)
     tn.write(b"exit\r\n")
     print("all I read" , tn.read_all().decode('ascii'))
-
-main()
