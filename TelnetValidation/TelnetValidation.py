@@ -9,7 +9,7 @@ import yld
 
 
 from tkinter import *
-
+# this class is for future use,
 class App(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
@@ -125,54 +125,53 @@ def userValidation(user, password, testT):
 # this code just will use to log system message for each command
 def logger():
     #open file that has list of commands
-    with open("c:\\work\\commands\\help2.txt") as fi:
-        Commands = fi.readlines()
-    for command in Commands: 
-        #because I don't know is system is waiting for command or there is something coming I put this      
-        tn.read_until(b'[CLI Telnet]$' , 3)
-        tn.write(commm.encode('ascii') + b'\r\n')
-        # Cause a 3-second pause between sends by waiting for something "unexpected"
-		# with a timeout value.
-        logg = tn.read_until(b'something',3)
-        lo[comm] = logg.decode('ascii')
+    try:
+        with open("commandlist.txt") as fi:
+                Commands = fi.readlines()
         
-    #log information into a yaml file    
+        for command in Commands: 
+                #because I don't know is system is waiting for command or there is something coming I put this      
+                tn.read_until(b'[CLI Telnet]$' , 3)
+                tn.write(commm.encode('ascii') + b'\r\n')
+                # Cause a 3-second pause between sends by waiting for something "unexpected"
+        		# with a timeout value.
+                logg = tn.read_until(b'something',3)
+                lo[comm] = logg.decode('ascii')
+    except  Exception :
+        print('it is not possible to open this file: commandlist.txt' , EXCEPTION)
+        sys.exit(1)
+        
+    #log information into a yaml file
+    tt = time.localtime()
+    ffp  = 'commandtest_'+ time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
     yf.ymal_dump(ffp,lo)
-
-        
-    commm = 'help'
-    tn.read_until(b'[CLI Telnet]$' , 5)
-    tn.write(commm.encode('ascii') + b'\r\n')
-    logg = tn.read_until(b'something',5)
-    print ('********************************')
-    print (logg)
-
-
+    tn.close()
+    exit()
+    
 
 
 if __name__ == "__main__":
     
+    #load variables (Host IP, user , pass ...)
+    fp = "variables.yaml"
+    yf = yld.yld
+    vars = yf.yaml_loader(fp)
+    
     # variables
     global HOST
-    HOST = '192.168.3.115'
+    HOST = vars['host'].strip() #'192.168.3.115'
     global PORT 
-    PORT = '5555'
-    #user = input("Enter your remote account: ")
-    #password = getpass.getpass()
-    user="admin"
-    password="ez-edge#1"
-    command ="help"
-    global testType 
+    PORT = vars['port'].strip()  # '5555'
+    user= vars['user'].strip()  #     "admin"
+    password=vars['password'].strip()  #"ez-edge#1"
+    commandRef =vars['commandRef'].strip() #command and expected messages file address 
+    
+    
     testType = ['bad user','bad pass','Too many invalid user', 'valid user' , 'just login']
+    #exit()
+   
 
-    fp = "config.yaml"
-    yf = yld.yld
-
-    '''data=yf.yaml_loader(fp)
-    print (data)
-    dbInfo = data.get("dbInfo")
-    for item_name, item_value in dbInfo.items():
-        print (item_name, item_value)'''
+    
     
     #telnet to ez-edge
     telnetConnection()
@@ -185,16 +184,11 @@ if __name__ == "__main__":
     userValidation(user,password , testType[3])
 
 
+    # this part checks if script has been run with logger command or not, if yes it will 
+    # send series of commands to system and it will create yaml file to use it as reference for test 
+    if str(sys.argv[1]).strip() =='logger':  logger()
 
-    logger()
-
-    
-
-    
-        
-
-    lo = {'help': logg.decode('ascii')}
-    yf.ymal_dump(fp,lo)
+   
 
     time.sleep(4)
     tn.write(b"exit\r\n")

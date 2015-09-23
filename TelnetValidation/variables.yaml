@@ -1,0 +1,6 @@
+host: '192.168.3.115'
+port: '5555'
+user: 'admin'
+password: 'ez-edge#1'
+commandRef: 'commandTest.yaml'
+
