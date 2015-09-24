@@ -14,6 +14,6 @@ class yld(object):
     def ymal_dump(filepath, data):
                 """Dump data to a yaml file"""
                 with open(filepath, "w") as file_desxriptor:
-                        yaml.dump(data, file_desxriptor)
+                        yaml.dump(data, file_desxriptor , default_flow_style=False)
 
 

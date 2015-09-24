@@ -3,4 +3,4 @@ port: '5555'
 user: 'admin'
 password: 'ez-edge#1'
 commandRef: 'commandTest.yaml'
-
+loggerPath: 'c:\\logs\\telnet_logs\\'

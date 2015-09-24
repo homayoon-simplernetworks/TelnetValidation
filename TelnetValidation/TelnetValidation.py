@@ -35,7 +35,8 @@ def userValidation(user, password, testT):
             TooManyPassTry = 1
             #to keep tracking of Too many invalid user 
             if testT == testType[2]: TooManyPassTry += 1
-
+            global toBeLogItems
+            toBeLogItems = {}
 
 
             #prepare list of all possible state 
@@ -48,9 +49,11 @@ def userValidation(user, password, testT):
                     
             def Invaliduser():
                 if testT == testType[0]:
-                    print ('invalid user test has been passed')
+                    toBeLog  = 'invalid user test has been passed'
+                    print (toBeLog)
                 elif testT == testType[1]:
-                    print ('invalid pass test has been passed')
+                    toBeLog = 'invalid pass test has been passed'
+                    print (toBeLog)
                 elif testT == testType[2]:
                     tnexInvalid = tn.expect(InvalidUserList, 15)
                     
@@ -59,28 +62,37 @@ def userValidation(user, password, testT):
                         if TooManyPassTry<4 : 
                             userValidation(user, password, testT)
                         else:
-                            print ('too many invalid user/ pass failed, still system ask for new user ')
+                            toBeLog = 'too many invalid user/ pass failed, still system ask for new user '
+                            print (toBeLog)
                             w = input ('press enter to close ...')
                             exit()
                     elif tnexInvalid[0] == 2:
-                        print ('too many invalid user/ pass test failed, system is loged in!!!')
+                        toBeLog = 'too many invalid user/ pass test failed, system is logged in!!!'
+                        print (toBeLog)
                         w = input ('press enter to exit ...')
                     elif tnexInvalid[0] == 1: 
-                        print ('too many invalid user/ pass test has been passed' )
+                        toBeLog = 'too many invalid user/ pass test has been passed'
+                        print (toBeLog)
                         tn.close()
                         # in this state connection has been closed, to continue the we need to re open the connection 
                         telnetConnection()
                     elif tnexInvalid[0] == -1:
-                        print ('too many invalid user/ pass failed, timeout')
+                        toBeLog = 'too many invalid user/ pass failed, timeout'
+                        print (toBeLog)
                         w= input('enter to exit....')
                         tn.close()
                         exit()
+                if toBeLog: toBeLogItems[testT] = toBeLog
 
             def Validuser():
-                print ('valid user test has been passed' )
+                toBeLog = 'valid user test has been passed'
+                print (toBeLog )
+                toBeLogItems[testT] = toBeLog
         
             def timeoutR():
-                print('timeout')
+                toBeLog = 'timeout'
+                print(toBeLog)
+                toBeLogItems[testT] = toBeLog
         
             InitialOptions = { -1: timeoutR,
                        0 : Invaliduser,
@@ -90,7 +102,7 @@ def userValidation(user, password, testT):
         
             def loginTo():
 
-                #too many invalid user needs to recall the program, becuase already 'User    :' has been 
+                #too many invalid user needs to recall the program, because already 'User    :' has been 
                 if not testT == testType[2]: tn.read_until(b"User    : ")
                 else:
                     tn.read_until(b"User    : ",2)
@@ -110,6 +122,8 @@ def userValidation(user, password, testT):
             us = tn.expect(InitialExpectedList, 15)
         
             InitialOptions[us[0]]()
+            
+
             
     except ValueError:
         print ( 'telnet connection to ' , HOST, PORT, 'is not possible: ' , ValueError)
@@ -131,24 +145,104 @@ def logger():
         
         for command in Commands: 
                 #because I don't know is system is waiting for command or there is something coming I put this      
-                tn.read_until(b'[CLI Telnet]$' , 3)
-                tn.write(commm.encode('ascii') + b'\r\n')
+                tn.read_until(b'CLI Telnet' , 2)
+                tn.write(command.encode('ascii') + b'\r\n')
                 # Cause a 3-second pause between sends by waiting for something "unexpected"
         		# with a timeout value.
-                logg = tn.read_until(b'something',3)
-                lo[comm] = logg.decode('ascii')
+                logg = tn.read_until(b'CLI Telnet' , 3)
+                lo[command] = logg.decode('ascii')
     except  Exception :
         print('it is not possible to open this file: commandlist.txt' , EXCEPTION)
         sys.exit(1)
         
     #log information into a yaml file
     tt = time.localtime()
-    ffp  = 'commandtest_'+ time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
+    ffp  = 'commandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
     yf.ymal_dump(ffp,lo)
     tn.close()
     exit()
     
+def commandTester(filename):
+    #open file that has list of commands
+    try:
+        commandsMesages = yf.yaml_loader(filename)
+               
+        for item_name, item_value in commandsMesages.items():
+            #print (item_name, item_value)
+            #because I don't know is system is waiting for command or there is something coming I put this      
+            tn.read_until(b'[CLI Telnet]' , 3)
+            time.sleep(0.5)
+            tn.write(item_name.encode('ascii') + b'\r\n')
+            print( 'command', item_name , ' has been sent ')
+            
+           
+            #message normally contains 'Cmd Success.' to have both options in below list, I need to remove it form original message
+            ms = str(item_value).strip()
+            ms = ms[0:ms.find('Cmd Success')]
 
+            #list of possible message form ez-edge
+            exList = [b'Cmd failed.' , b'Cmd Success.' , str(item_value).strip().encode('ascii')]
+
+            #wait 5 sec or receive one of the possible expected message
+            #check if received value is same as expected value
+            logg = tn.expect(exList,5)
+
+            testResult = 'command failed'
+            if logg[0] == 2 : 
+                testResult = 'Pass'
+                print( 'test has been passed')
+                testResultItemAll = { 'test result': testResult , 'time' : time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()) , 'expected value' : item_value , 'received value' : logg[2].decode('ascii')}
+            elif logg[0] == 1:
+                print('ez-edge has accepted the command, but the message that is sent by system is not exactly same as expected message, please verify re_check logs ')
+                testResult = 're-check please'
+                testResultItemAll = { 'test result': testResult , 'time' : time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()) , 'expected value' : item_value , 'received value' : logg[2].decode('ascii')}
+                recheckTestResultItems[item_name] = testResultItemAll
+            elif logg[0] == 0:
+                print('command failed please check failed log')
+                testResult = 'command failed'
+                testResultItemAll = { 'test result': testResult , 'time' : time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()) , 'expected value' : item_value , 'received value' : logg[2].decode('ascii')}
+                failedTestResultItems[item_name] = testResultItemAll
+            elif logg[0] == -1:
+                print('command does not failed or passed please check recheck log')
+                testResult = 'command failed or pass'
+                testResultItemAll = { 'test result': testResult , 'time' : time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()) , 'expected value' : item_value , 'received value' : logg[2].decode('ascii')}
+                recheckTestResultItems[item_name] = testResultItemAll
+            else:
+                print('state is unknown')
+                testResult = 'unknown'
+                testResultItemAll = { 'test result': testResult , 'time' : time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()) , 'expected value' : item_value , 'received value' : logg[2].decode('ascii')}
+                failedTestResultItems[item_name] = testResultItemAll
+
+            allTestResultItems[item_name] = testResultItemAll
+            
+        #log information into a yaml file
+        #file name for test result (all)
+        fileAllTestResultItems  = loggerPath + 'commandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
+        yf.ymal_dump(fileAllTestResultItems,allTestResultItems)
+
+        #file name for just failed test
+        fileFailedTestResultItems  = loggerPath + 'failedCommandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
+        #check if there is any failed test     
+        if failedTestResultItems: yf.ymal_dump(fileFailedTestResultItems,failedTestResultItems)
+
+        #file name for just recheck test
+        fileRecheckTestResultItems  = loggerPath + 'recheckCommandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
+        #check if there is any recheck test     
+        if recheckTestResultItems: yf.ymal_dump(fileRecheckTestResultItems,recheckTestResultItems)
+            
+    except  Exception :
+        print('it is not possible to open this file: commandlist.txt' , EXCEPTION)
+        sys.exit(1)
+    except EOFError:
+        print ('telnet connection to ' , HOST, PORT, 'has been closed: ' , EOFError)
+        w = input('press enter ...')
+        exit()
+        
+    
+
+
+    tn.close()
+    exit()
 
 if __name__ == "__main__":
     
@@ -165,28 +259,35 @@ if __name__ == "__main__":
     user= vars['user'].strip()  #     "admin"
     password=vars['password'].strip()  #"ez-edge#1"
     commandRef =vars['commandRef'].strip() #command and expected messages file address 
-    
+    loggerPath = vars['loggerPath'].strip()
     
     testType = ['bad user','bad pass','Too many invalid user', 'valid user' , 'just login']
-    #exit()
    
-
-    
-    
     #telnet to ez-edge
     telnetConnection()
 
-
+    toBeLogItemsAll = {}
     #these test steps will test bad user name 
     userValidation(user + 'ff',password ,testType[0])
+    toBeLogItemsAll.update ( toBeLogItems)
     userValidation(user,password + 'ff' , testType[1])
+    toBeLogItemsAll.update ( toBeLogItems)
     userValidation(user,password + 'ff' , testType[2])
+    toBeLogItemsAll.update ( toBeLogItems)
     userValidation(user,password , testType[3])
+    toBeLogItemsAll.update ( toBeLogItems)
 
+    #log information into a yaml file
+    #file name for login test result (all)
+    fileLoginTestResultItems  = loggerPath + 'LoginTest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
+    yf.ymal_dump(fileLoginTestResultItems,toBeLogItemsAll)
 
     # this part checks if script has been run with logger command or not, if yes it will 
     # send series of commands to system and it will create yaml file to use it as reference for test 
-    if str(sys.argv[1]).strip() =='logger':  logger()
+    try:
+        if str(sys.argv[1]).strip() =='logger':  logger()
+    except  :
+        pass
 
    
 
