@@ -22,12 +22,16 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ordered.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TelnetValidation.py" />
     <Compile Include="yld.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="commandlist.txt" />
     <Content Include="variables.yaml" />
   </ItemGroup>
   <PropertyGroup>

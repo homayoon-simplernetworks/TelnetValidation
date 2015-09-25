@@ -140,37 +140,53 @@ def userValidation(user, password, testT):
 def logger():
     #open file that has list of commands
     try:
-        with open("commandlist.txt") as fi:
+        global lo
+        lo={}
+        with open('C:\\work\\commandlist.txt' , 'r') as fi:
                 Commands = fi.readlines()
         
         for command in Commands: 
+                
                 #because I don't know is system is waiting for command or there is something coming I put this      
-                tn.read_until(b'CLI Telnet' , 2)
-                tn.write(command.encode('ascii') + b'\r\n')
+                tn.read_until(b'CLI Telnet]$ ' , 3)
+                time.sleep(1)
+                print (command)
+                tn.write(command.strip("\n").encode('ascii') + b'\r\n')
                 # Cause a 3-second pause between sends by waiting for something "unexpected"
         		# with a timeout value.
-                logg = tn.read_until(b'CLI Telnet' , 3)
-                lo[command] = logg.decode('ascii')
+                logg = tn.read_until(b'CLI Telnet]$ ' , 3)
+                lo[command.strip("\n")] =  logg.decode("ascii") 
+                print (lo)
+    
+        
+        #log information into a yaml file
+        tt = time.localtime()
+        w = input('wait .................')
+        ffp  = 'commandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) +'.yaml'
+        yf.ymal_dump(ffp,lo)
+        tn.close()
+        exit()
+
     except  Exception :
         print('it is not possible to open this file: commandlist.txt' , EXCEPTION)
-        sys.exit(1)
         
-    #log information into a yaml file
-    tt = time.localtime()
-    ffp  = 'commandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
-    yf.ymal_dump(ffp,lo)
-    tn.close()
-    exit()
     
 def commandTester(filename):
     #open file that has list of commands
     try:
+        global allTestResultItems
+        allTestResultItems = {}
+        global recheckTestResultItems
+        recheckTestResultItems = {}
+        global failedTestResultItems
+        failedTestResultItems = {}
+
         commandsMesages = yf.yaml_loader(filename)
                
         for item_name, item_value in commandsMesages.items():
             #print (item_name, item_value)
             #because I don't know is system is waiting for command or there is something coming I put this      
-            tn.read_until(b'[CLI Telnet]' , 3)
+            tn.read_until(b'[CLI Telnet]$ ' , 3)
             time.sleep(0.5)
             tn.write(item_name.encode('ascii') + b'\r\n')
             print( 'command', item_name , ' has been sent ')
@@ -179,9 +195,10 @@ def commandTester(filename):
             #message normally contains 'Cmd Success.' to have both options in below list, I need to remove it form original message
             ms = str(item_value).strip()
             ms = ms[0:ms.find('Cmd Success')]
+            ms = ms [:200]
 
             #list of possible message form ez-edge
-            exList = [b'Cmd failed.' , b'Cmd Success.' , str(item_value).strip().encode('ascii')]
+            exList = [b'Cmd failed.' , b'Cmd Success.' , ms.strip().encode('ascii')]
 
             #wait 5 sec or receive one of the possible expected message
             #check if received value is same as expected value
@@ -229,20 +246,22 @@ def commandTester(filename):
         fileRecheckTestResultItems  = loggerPath + 'recheckCommandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
         #check if there is any recheck test     
         if recheckTestResultItems: yf.ymal_dump(fileRecheckTestResultItems,recheckTestResultItems)
+
+        
+
+        tn.close()
+        exit()
             
-    except  Exception :
-        print('it is not possible to open this file: commandlist.txt' , EXCEPTION)
-        sys.exit(1)
+    #except  Exception :
+        #print('it is not possible to open this file: commandlist.txt' , EXCEPTION)
+        
     except EOFError:
         print ('telnet connection to ' , HOST, PORT, 'has been closed: ' , EOFError)
         w = input('press enter ...')
-        exit()
+        
         
     
 
-
-    tn.close()
-    exit()
 
 if __name__ == "__main__":
     
@@ -288,8 +307,8 @@ if __name__ == "__main__":
         if str(sys.argv[1]).strip() =='logger':  logger()
     except  :
         pass
-
-   
+    #logger()
+    commandTester(commandRef)
 
     time.sleep(4)
     tn.write(b"exit\r\n")

@@ -1,6 +1,6 @@
-host: '192.168.3.115'
+host: '192.168.3.114'
 port: '5555'
 user: 'admin'
 password: 'ez-edge#1'
-commandRef: 'commandTest.yaml'
+commandRef: 'commandtest_1.yaml'
 loggerPath: 'c:\\logs\\telnet_logs\\'

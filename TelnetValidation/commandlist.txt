@@ -1,0 +1,9 @@
+Help
+menulock
+menulocl syslayer on
+help
+showalm
+showalm all
+showall
+ahoweqpt
+showeqpt all
