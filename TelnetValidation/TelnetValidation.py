@@ -8,6 +8,7 @@ import yaml
 import yld
 
 
+
 from tkinter import *
 # this class is for future use,
 class App(Frame):
@@ -261,6 +262,10 @@ def commandTester(filename):
         
         
     
+def timeoutSession(filemame):
+    print('timeout')
+
+
 
 
 if __name__ == "__main__":
@@ -278,7 +283,8 @@ if __name__ == "__main__":
     user= vars['user'].strip()  #     "admin"
     password=vars['password'].strip()  #"ez-edge#1"
     commandRef =vars['commandRef'].strip() #command and expected messages file address 
-    loggerPath = vars['loggerPath'].strip()
+    loggerPath = vars['loggerPath'].strip() #address for save log files
+    testMode = vars['testMode'].strip() # switch between 'logger' or 'command' validation and 'timeout' test
     
     testType = ['bad user','bad pass','Too many invalid user', 'valid user' , 'just login']
    
@@ -286,16 +292,19 @@ if __name__ == "__main__":
     telnetConnection()
 
     toBeLogItemsAll = {}
-    #these test steps will test bad user name 
-    userValidation(user + 'ff',password ,testType[0])
-    toBeLogItemsAll.update ( toBeLogItems)
-    userValidation(user,password + 'ff' , testType[1])
-    toBeLogItemsAll.update ( toBeLogItems)
-    userValidation(user,password + 'ff' , testType[2])
-    toBeLogItemsAll.update ( toBeLogItems)
+    #these test steps will test bad user name or password
+    if testMode == 'command' :
+        userValidation(user + 'ff',password ,testType[0])
+        toBeLogItemsAll.update ( toBeLogItems)
+        userValidation(user,password + 'ff' , testType[1])
+        toBeLogItemsAll.update ( toBeLogItems)
+        userValidation(user,password + 'ff' , testType[2])
+        toBeLogItemsAll.update ( toBeLogItems)
+
+    # all other test modes needs login, 
     userValidation(user,password , testType[3])
     toBeLogItemsAll.update ( toBeLogItems)
-
+        
     #log information into a yaml file
     #file name for login test result (all)
     fileLoginTestResultItems  = loggerPath + 'LoginTest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
@@ -303,12 +312,9 @@ if __name__ == "__main__":
 
     # this part checks if script has been run with logger command or not, if yes it will 
     # send series of commands to system and it will create yaml file to use it as reference for test 
-    try:
-        if str(sys.argv[1]).strip() =='logger':  logger()
-    except  :
-        pass
-    #logger()
-    commandTester(commandRef)
+    if testMode =='logger':  logger()
+    if testMode == 'command' : commandTester(commandRef)
+    if testMode == 'timeout' : timeoutsession(commandRef)
 
     time.sleep(4)
     tn.write(b"exit\r\n")

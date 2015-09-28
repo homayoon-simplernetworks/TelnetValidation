@@ -11,8 +11,6 @@ class yld(object):
     def yaml_loader(filepath):
                 """Loads a yaml file"""
                 oorr = ordered
-
-
                 with open(filepath, "r") as file_descriptor:
                         data = oorr.ordered_load (file_descriptor, yaml.SafeLoader)
                         #data = ordered_load(file_descriptor, yaml.SafeLoader)

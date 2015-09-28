@@ -25,6 +25,9 @@
     <Compile Include="ordered.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="setup.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TelnetValidation.py" />
     <Compile Include="yld.py">
       <SubType>Code</SubType>
