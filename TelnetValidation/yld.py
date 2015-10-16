@@ -16,7 +16,7 @@ class yld(object):
                         #data = ordered_load(file_descriptor, yaml.SafeLoader)
                 return data
 
-    def ymal_dump(filepath, data):
+    def yaml_dump(filepath, data):
                 """Dump data to a yaml file"""
                 oorw = ordered
                 with open(filepath, "w") as file_desxriptor:

@@ -164,7 +164,7 @@ def logger():
         tt = time.localtime()
         w = input('wait .................')
         ffp  = 'commandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) +'.yaml'
-        yf.ymal_dump(ffp,lo)
+        yf.yaml_dump(ffp,lo)
         tn.close()
         exit()
 
@@ -236,17 +236,17 @@ def commandTester(filename):
         #log information into a yaml file
         #file name for test result (all)
         fileAllTestResultItems  = loggerPath + 'commandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
-        yf.ymal_dump(fileAllTestResultItems,allTestResultItems)
+        yf.yaml_dump(fileAllTestResultItems,allTestResultItems)
 
         #file name for just failed test
         fileFailedTestResultItems  = loggerPath + 'failedCommandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
         #check if there is any failed test     
-        if failedTestResultItems: yf.ymal_dump(fileFailedTestResultItems,failedTestResultItems)
+        if failedTestResultItems: yf.yaml_dump(fileFailedTestResultItems,failedTestResultItems)
 
         #file name for just recheck test
         fileRecheckTestResultItems  = loggerPath + 'recheckCommandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
         #check if there is any recheck test     
-        if recheckTestResultItems: yf.ymal_dump(fileRecheckTestResultItems,recheckTestResultItems)
+        if recheckTestResultItems: yf.yaml_dump(fileRecheckTestResultItems,recheckTestResultItems)
 
         
 
@@ -263,7 +263,9 @@ def commandTester(filename):
         
     
 def timeoutSession(filemame):
-    print('timeout')
+    print('timeout test is running please do not close the program, start time: ' , time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()))
+    time.sleep(16000)
+    print('timeout test is running please do not close the program, start time: ' , time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()))
 
 
 
@@ -308,7 +310,7 @@ if __name__ == "__main__":
     #log information into a yaml file
     #file name for login test result (all)
     fileLoginTestResultItems  = loggerPath + 'LoginTest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.yaml'
-    yf.ymal_dump(fileLoginTestResultItems,toBeLogItemsAll)
+    yf.yaml_dump(fileLoginTestResultItems,toBeLogItemsAll)
 
     # this part checks if script has been run with logger command or not, if yes it will 
     # send series of commands to system and it will create yaml file to use it as reference for test 
