@@ -295,7 +295,7 @@ if __name__ == "__main__":
 
     toBeLogItemsAll = {}
     #these test steps will test bad user name or password
-    if testMode == 'command' :
+    if testMode == 'login' :
         userValidation(user + 'ff',password ,testType[0])
         toBeLogItemsAll.update ( toBeLogItems)
         userValidation(user,password + 'ff' , testType[1])
