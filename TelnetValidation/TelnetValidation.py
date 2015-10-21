@@ -138,12 +138,12 @@ def userValidation(user, password, testT):
 
 #send commends and log message
 # this code just will use to log system message for each command
-def logger():
+def logger(filename):
     #open file that has list of commands
     try:
         global lo
         lo={}
-        with open('C:\\work\\commandlist.txt' , 'r') as fi:
+        with open(filename , 'r') as fi:
                 Commands = fi.readlines()
         
         for command in Commands: 
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     commandRef =vars['commandRef'].strip() #command and expected messages file address 
     loggerPath = vars['loggerPath'].strip() #address for save log files
     testMode = vars['testMode'].strip() # switch between 'logger' or 'command' validation and 'timeout' test
-    
+    loggerInput = vars['loggerInput']
     testType = ['bad user','bad pass','Too many invalid user', 'valid user' , 'just login']
    
     #telnet to ez-edge
@@ -314,7 +314,7 @@ if __name__ == "__main__":
 
     # this part checks if script has been run with logger command or not, if yes it will 
     # send series of commands to system and it will create yaml file to use it as reference for test 
-    if testMode =='logger':  logger()
+    if testMode =='logger':  logger(loggerInput)
     if testMode == 'command' : commandTester(commandRef)
     if testMode == 'timeout' : timeoutsession(commandRef)
 
