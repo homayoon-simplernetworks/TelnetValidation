@@ -6,6 +6,7 @@ import binascii
 import sys
 import yaml
 import yld
+import collections
 
 
 
@@ -142,7 +143,7 @@ def logger(filename):
     #open file that has list of commands
     try:
         global lo
-        lo={}
+        lo=collections.OrderedDict()
         with open(filename , 'r') as fi:
                 Commands = fi.readlines()
         
@@ -166,21 +167,23 @@ def logger(filename):
         ffp  = 'commandtest_'+ time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) +'.yaml'
         yf.yaml_dump(ffp,lo)
         tn.close()
+        w = input('enter to exit ..............')
         exit()
 
-    except  Exception :
-        print('it is not possible to open this file: commandlist.txt' , EXCEPTION)
+    except    FileExistsError as err :
+        print('it is not possible to open this file: commandlist.txt' , err )
+        w = input('enter to exit .................')
         
     
 def commandTester(filename):
     #open file that has list of commands
     try:
         global allTestResultItems
-        allTestResultItems = {}
+        allTestResultItems = collections.OrderedDict()
         global recheckTestResultItems
-        recheckTestResultItems = {}
+        recheckTestResultItems = collections.OrderedDict()
         global failedTestResultItems
-        failedTestResultItems = {}
+        failedTestResultItems = collections.OrderedDict()
 
         commandsMesages = yf.yaml_loader(filename)
                
@@ -288,6 +291,8 @@ if __name__ == "__main__":
     loggerPath = vars['loggerPath'].strip() #address for save log files
     testMode = vars['testMode'].strip() # switch between 'logger' or 'command' validation and 'timeout' test
     loggerInput = vars['loggerInput']
+    scriptPath = vars['scriptPath']
+
     testType = ['bad user','bad pass','Too many invalid user', 'valid user' , 'just login']
    
     #telnet to ez-edge
@@ -314,9 +319,9 @@ if __name__ == "__main__":
 
     # this part checks if script has been run with logger command or not, if yes it will 
     # send series of commands to system and it will create yaml file to use it as reference for test 
-    if testMode =='logger':  logger(loggerInput)
-    if testMode == 'command' : commandTester(commandRef)
-    if testMode == 'timeout' : timeoutsession(commandRef)
+    if testMode =='logger':  logger(scriptPath+loggerInput)
+    if testMode == 'command' : commandTester(scriptPath+commandRef)
+    if testMode == 'timeout' : timeoutsession(scriptPath+commandRef)
 
     time.sleep(4)
     tn.write(b"exit\r\n")

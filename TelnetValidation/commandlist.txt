@@ -1,6 +1,6 @@
 Help
 menulock
-menulocl syslayer on
+menulock syslayer on
 help
 showalm
 showalm all
