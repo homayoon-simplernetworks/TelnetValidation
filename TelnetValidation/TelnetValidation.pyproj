@@ -35,6 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="commandlist.txt" />
+    <Content Include="readme.docx" />
     <Content Include="variables.yaml" />
   </ItemGroup>
   <PropertyGroup>
